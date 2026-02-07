@@ -28,44 +28,62 @@ const Topbar = () => {
   const navigate = useNavigate();
 
   const menuItems = [
-    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    {
-      label: "Clients",
-      icon: Briefcase,
-      subMenu: [
-        { label: "Clients", path: "/client-table", roles: ["Superadmin"] },
-        { label: "Projects", path: "/project", roles: ["Superadmin", "employee"] },
-        { label: "Payments", path: "/payments-table", roles: ["Superadmin"] },
-      ],
-    },
-    {
-      label: "Employees",
-      icon: Users,
-      subMenu: [
-        { label: "Employee List", path: "/employee-table", roles: ["Superadmin"] },
-        { label: "Attendance", path: "/attendance-table", roles: ["Superadmin", "employee", "Lead"] },
-        { label: "Leaves", path: "/leave-table", roles: ["Superadmin", "employee", "Lead"] },
-        { label: "Adjustments", path: "/adjustment-table", roles: ["Superadmin"] },
-        { label: "Payroll", path: "/payroll-table", roles: ["Superadmin"] },
-        { label: "Search Leads", path: "/search-leads", roles: ["Superadmin"] },
-      ],
-    },
-    { label: "Tasks", path: "/task", icon: Clipboard },
-    {
-      label: "Enquiries",
-      path: "/lead-table",
-      icon: MessageCircleQuestion,
-      roles: ["Superadmin", "Lead"],
-    },
-    {
-      label: "Expenses",
-      path: "/expense-table",
-      icon: CreditCard,
-      roles: ["Superadmin"],
-    },
-    { label: "MoM", path: "/momdetails", icon: FileText },
-    { label: "Quotations", path: "/quotation-table", icon: FileText, roles: ["Superadmin"]},
-  ];
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  {
+    label: "Clients",
+    icon: Briefcase,
+    subMenu: [
+      {
+        label: "Clients",
+        path: "/client-table",
+        roles: ["Superadmin"],
+      },
+      {
+        label: "Projects",
+        path: "/project",
+        roles: ["Superadmin", "employee"],
+      },
+      {
+        label: "Payments",
+        path: "/payments-table",
+        roles: ["Superadmin"],
+      },
+      {
+        label: "Requirements",
+        path: "/requirements-table",
+        roles: ["Superadmin"],
+      },
+    ],
+  },
+  {
+    label: "Employees",
+    icon: Users,
+    subMenu: [
+      { label: "Employee List", path: "/employee-table", roles: ["Superadmin"] },
+      { label: "Attendance", path: "/attendance-table", roles: ["Superadmin", "employee", "Lead"] },
+      { label: "Leaves", path: "/leave-table", roles: ["Superadmin", "employee", "Lead"] },
+      { label: "Adjustments", path: "/adjustment-table", roles: ["Superadmin"] },
+      { label: "Payroll", path: "/payroll-table", roles: ["Superadmin"] },
+      { label: "Search Leads", path: "/search-leads", roles: ["Superadmin"] },
+    ],
+  },
+  { label: "Tasks", path: "/task", icon: Clipboard },
+  {
+    label: "Enquiries",
+    path: "/lead-table",
+    icon: MessageCircleQuestion,
+    roles: ["Superadmin", "Lead"],
+  },
+  {
+    label: "Expenses",
+    path: "/expense-table",
+    icon: CreditCard,
+    roles: ["Superadmin"],
+  },
+  { label: "MoM", path: "/momdetails", icon: FileText },
+  { label: "Quotations", path: "/quotation-table", icon: FileText, roles: ["Superadmin"] },
+];
+
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role") || "Superadmin";

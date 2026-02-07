@@ -1,0 +1,230 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { FaPlus, FaFilter } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import {
+  useTable,
+  useGlobalFilter,
+  usePagination,
+} from "react-table";
+
+const Requirements = () => {
+  const [submissions, setSubmissions] = useState([]);
+  const navigate = useNavigate();
+
+  /* ---------------- LOAD DATA FROM API OR LOCAL STORAGE ---------------- */
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        // Fetch from backend API first
+        const res = await fetch("http://localhost:3000/api/preview");
+        if (res.ok) {
+          const data = await res.json();
+          setSubmissions(data);
+        } else {
+          // Fallback to localStorage if API fails
+          const existing = JSON.parse(localStorage.getItem("submissions") || "[]");
+          const withId = existing.map((item, idx) => ({
+            ...item,
+            _id: item._id || `local-${idx}`,
+          }));
+          setSubmissions(withId);
+        }
+      } catch (err) {
+        console.error("Error fetching submissions:", err);
+        const existing = JSON.parse(localStorage.getItem("submissions") || "[]");
+        const withId = existing.map((item, idx) => ({
+          ...item,
+          _id: item._id || `local-${idx}`,
+        }));
+        setSubmissions(withId);
+      }
+    };
+
+    fetchSubmissions();
+  }, []);
+
+  /* ---------------- VIEW HANDLER ---------------- */
+const handlePreview = (row) => {
+  if (!row._id) {
+    alert("Cannot preview this item, missing ID");
+    return;
+  }
+  navigate(`/preview/${row._id}`);
+};
+
+
+  /* ---------------- HELPERS ---------------- */
+  const renderDevRequirements = (requirements) => {
+    const dev = requirements?.["Step 1 – Development Requirements"];
+    if (!dev) return "—";
+    return (
+      <ol className="list-decimal pl-4 text-left">
+        {Object.keys(dev).map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ol>
+    );
+  };
+
+  const purchaseHeadings = [
+    "Number of Domains",
+    "Hosting Server",
+    "Hosting Service Provider",
+    "Media Storage",
+    "Mail Account(s)",
+    "API Paid Subscriptions",
+    "Theme License | Plugins",
+    "Other Purchases",
+    "Renewal & Maintenance",
+  ];
+
+  const renderPurchaseRequirements = () => (
+    <ol className="list-decimal pl-4 text-left">
+      {purchaseHeadings.map((item, i) => (
+        <li key={i}>{item}</li>
+      ))}
+    </ol>
+  );
+
+  /* ---------------- TABLE COLUMNS ---------------- */
+  const columns = useMemo(
+    () => [
+      {
+        Header: "S.No",
+        Cell: ({ row }) => row.index + 1,
+      },
+      {
+        Header: "Client Name",
+        accessor: (row) => row.clientInfo?.name || "N/A",
+      },
+      {
+        Header: "Development Requirements",
+        Cell: ({ row }) => renderDevRequirements(row.original.requirements),
+      },
+      {
+        Header: "Purchase Requirements",
+        Cell: () => renderPurchaseRequirements(),
+      },
+      {
+        Header: "Action",
+        Cell: ({ row }) => (
+          <button
+            onClick={() => handlePreview(row.original)}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            View
+          </button>
+        ),
+      },
+    ],
+    []
+  );
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    page,
+    prepareRow,
+    state,
+    setGlobalFilter,
+    nextPage,
+    previousPage,
+    canNextPage,
+    canPreviousPage,
+    pageOptions,
+  } = useTable(
+    { columns, data: submissions, initialState: { pageSize: 5 } },
+    useGlobalFilter,
+    usePagination
+  );
+
+  const { globalFilter, pageIndex } = state;
+
+  return (
+    <div className="p-6">
+      <h2 className="text-3xl font-bold text-center mb-6">
+        Requirements Details
+      </h2>
+
+      <div className="flex justify-between mb-4">
+        <div className="relative">
+          <input
+            value={globalFilter || ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search..."
+            className="border px-3 py-2 rounded pl-8"
+          />
+          <FaFilter className="absolute left-2 top-3 text-gray-500" />
+        </div>
+
+        <button
+          onClick={() => navigate("/requirements-form")}
+          className="bg-blue-600 text-white px-5 py-2 rounded"
+        >
+          <FaPlus className="inline mr-2" />
+          Add Requirement
+        </button>
+      </div>
+
+      {submissions.length === 0 ? (
+        <p className="text-center">No requirements found.</p>
+      ) : (
+        <>
+          <table {...getTableProps()} className="w-full border">
+            <thead className="bg-blue-600 text-white">
+              {headerGroups.map((hg) => (
+                <tr {...hg.getHeaderGroupProps()} key={hg.id}>
+                  {hg.headers.map((col) => (
+                    <th key={col.id} className="p-3 text-center">
+                      {col.render("Header")}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+
+            <tbody {...getTableBodyProps()}>
+              {page.map((row) => {
+                prepareRow(row);
+                return (
+                  <tr key={row.id} className="border-b align-top">
+                    {row.cells.map((cell) => (
+                      <td key={cell.column.id} className="p-3">
+                        {cell.render("Cell")}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div className="flex justify-between mt-4">
+            <span>
+              Page {pageIndex + 1} of {pageOptions.length}
+            </span>
+            <div>
+              <button
+                onClick={previousPage}
+                disabled={!canPreviousPage}
+                className="px-4 py-2 bg-gray-600 text-white mr-2 disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <button
+                onClick={nextPage}
+                disabled={!canNextPage}
+                className="px-4 py-2 bg-gray-600 text-white disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default Requirements;

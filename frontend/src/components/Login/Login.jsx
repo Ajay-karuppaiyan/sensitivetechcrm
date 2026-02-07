@@ -1,3 +1,5 @@
+// /* login through click the otp shown in frontend  */
+
 // import React, { useState, useEffect } from "react";
 // import { useNavigate, useLocation } from "react-router-dom";
 // import logo from "../../assets/logo light.png";
@@ -313,51 +315,64 @@
 //   );
 // };
 
-//export default LoginPage;
+// export default LoginPage;
 
-import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo light.png";
-import { googleLogin } from "../../api/services/projectServices";
 
-const LoginPage = () => {
-  const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await googleLogin(credentialResponse.credential);
 
-      const role = res.data.employee.role;
 
-      navigate(
-        role === "Superadmin" || role === "Lead"
-          ? "/dashboard"
-          : "/attendance-form"
-      );
-    } catch (err) {
-      alert(err.response?.data?.message || "Google Login Failed");
-    }
-  };
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-blue-500 p-6 rounded-lg text-center w-80">
-        <img src={logo} className="mx-auto mb-5" alt="Logo" />
+/* login through google signin */
 
-        <h2 className="text-white mb-4 font-semibold">
-          Sign in with Google
-        </h2>
+// import { GoogleLogin } from "@react-oauth/google";
+// import { useNavigate } from "react-router-dom";
+// import logo from "../../assets/logo light.png";
+// import { googleLogin } from "../../api/services/projectServices";
 
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => console.log("Google Login Failed")}
-        />
-      </div>
-    </div>
-  );
-};
+// const LoginPage = () => {
+//   const navigate = useNavigate();
 
-export default LoginPage;
+//   const handleGoogleSuccess = async (credentialResponse) => {
+//     try {
+//       const res = await googleLogin(credentialResponse.credential);
+
+//       const role = res.data.employee.role;
+
+//       navigate(
+//         role === "Superadmin" || role === "Lead"
+//           ? "/dashboard"
+//           : "/attendance-form"
+//       );
+//     } catch (err) {
+//       alert(err.response?.data?.message || "Google Login Failed");
+//     }
+//   };
+
+//   return (
+//     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+//       <div className="bg-blue-500 p-6 rounded-lg text-center w-80">
+//         <img src={logo} className="mx-auto mb-5" alt="Logo" />
+
+//         <h2 className="text-white mb-4 font-semibold">
+//           Sign in with Google
+//         </h2>
+
+//         <GoogleLogin
+//           onSuccess={handleGoogleSuccess}
+//           onError={() => console.log("Google Login Failed")}
+//         />
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default LoginPage;
+
+
+
+
+/* login through the otp get from email */
+
 
 
 // import React, { useState, useEffect } from "react";
@@ -658,3 +673,317 @@ export default LoginPage;
 // };
 
 //  export default LoginPage;
+
+
+
+import React, { useState, useEffect } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate, useLocation } from "react-router-dom";
+import logo from "../../assets/logo light.png";
+import { googleLogin, sendOTP, verifyOTP } from "../../api/services/projectServices";
+import { AlertCircle, Loader, Copy, Check, Mail, Chrome } from "lucide-react";
+
+const LoginPage = () => {
+  const [loginMethod, setLoginMethod] = useState("initial");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [displayOtp, setDisplayOtp] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.sessionExpired) {
+      setError("Your session has expired. Please login again.");
+    }
+
+    localStorage.removeItem("empId");
+    localStorage.removeItem("role");
+    localStorage.removeItem("tokenExpiration");
+  }, [location.state]);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  useEffect(() => {
+    if (displayOtp) {
+      const timer = setTimeout(() => setDisplayOtp(""), 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [displayOtp]);
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error) setError("");
+  };
+
+  const handleOtpChange = (e) => {
+    setOtp(e.target.value);
+    if (error) setError("");
+  };
+
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setDisplayOtp("");
+
+    try {
+      const response = await sendOTP({ email });
+
+      if (response.status === 200) {
+        setOtpSent(true);
+        setCountdown(60);
+
+        if (response.data.otp) {
+          setDisplayOtp(response.data.otp);
+        }
+      }
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setError("Email not found. Please check your email address.");
+      } else {
+        setError("Failed to send OTP. Please try again later.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await verifyOTP({
+        email,
+        otp: otp.toString(),
+      });
+
+      if (response.status === 200) {
+        const employeeData = response.data.employee || response.data.admin;
+
+        if (employeeData.status?.toLowerCase().trim() !== "active") {
+          setError("Your account is inactive. Contact admin.");
+          return;
+        }
+
+        const { _id, role, empId, name } = employeeData;
+        localStorage.setItem("empId", _id);
+        localStorage.setItem("role", role);
+        localStorage.setItem("stid", empId);
+        localStorage.setItem("name", name);
+
+        const expirationTime = new Date().getTime() + 10 * 60 * 1000;
+        localStorage.setItem("tokenExpiration", expirationTime.toString());
+
+        navigate(
+          role === "Superadmin" || role === "Lead"
+            ? "/dashboard"
+            : "/attendance-form"
+        );
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        setError("Invalid OTP. Please try again.");
+      } else if (error.response?.status === 400) {
+        setError("OTP expired. Please request a new one.");
+      } else {
+        setError("Something went wrong. Try again later.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return;
+
+    setLoading(true);
+    setError("");
+    setDisplayOtp("");
+
+    try {
+      const response = await sendOTP({ email });
+
+      if (response.status === 200) {
+        setCountdown(60);
+        if (response.data.otp) {
+          setDisplayOtp(response.data.otp);
+        }
+      }
+    } catch {
+      setError("Failed to resend OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyOtp = () => {
+    setOtp(displayOtp);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      const res = await googleLogin(credentialResponse.credential);
+
+      const employeeData = res.data.employee || res.data.admin;
+
+      if (employeeData.status?.toLowerCase().trim() !== "active") {
+        setError("Your account is inactive. Contact admin.");
+        return;
+      }
+
+      const { _id, role, empId, name } = employeeData;
+      localStorage.setItem("empId", _id);
+      localStorage.setItem("role", role);
+      localStorage.setItem("stid", empId);
+      localStorage.setItem("name", name);
+
+      const expirationTime = new Date().getTime() + 10 * 60 * 1000;
+      localStorage.setItem("tokenExpiration", expirationTime.toString());
+
+      navigate(
+        role === "Superadmin" || role === "Lead"
+          ? "/dashboard"
+          : "/attendance-form"
+      );
+    } catch {
+      setError("Google Login Failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+return (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb]">
+    
+    {/* CARD */}
+    <div className="relative w-full max-w-sm p-8 bg-[#3b82f6] rounded-xl shadow-2xl">
+
+      {/* BACK ARROW – LOGO KUM MELA */}
+      {/* {(loginMethod === "google" || loginMethod === "email") && (
+        <button
+          onClick={() => setLoginMethod("initial")}
+          className="absolute top-4 left-4 h-10 w-10 flex items-center justify-center rounded-full bg-white text-gray-700 shadow-md hover:bg-gray-100 transition"
+          aria-label="Back"
+        >
+          ←
+        </button>
+      )} */}
+
+      {/* LOGO */}
+      <div className="flex justify-center mb-8">
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-24 md:h-28 lg:h-32 w-auto drop-shadow-xl"
+        />
+      </div>
+
+      {/* INITIAL */}
+      {loginMethod === "initial" && (
+        <div className="space-y-4 text-white">
+          <h2 className="text-2xl font-bold text-center">Welcome Back</h2>
+
+          <button
+            onClick={() => setLoginMethod("google")}
+            className="w-full flex items-center justify-center gap-3 py-3 bg-white text-blue-600 rounded-lg font-semibold"
+          >
+            <Chrome className="h-5 w-5" />
+            Continue with Google
+          </button>
+
+          {/* OR DIVIDER */}
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="px-3 text-sm font-medium text-white">
+              OR
+            </span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          <button
+            onClick={() => setLoginMethod("email")}
+            className="w-full flex items-center justify-center gap-3 py-3 bg-white text-blue-600 rounded-lg font-semibold"
+          >
+            <Mail className="h-5 w-5" />
+            Sign in with Email
+          </button>
+        </div>
+      )}
+
+      {/* GOOGLE */}
+      {loginMethod === "google" && (
+        <div className="text-center text-white space-y-4">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("Google Login Failed")}
+          />
+        </div>
+      )}
+
+      {/* EMAIL */}
+      {loginMethod === "email" && (
+        <div className="space-y-4 text-white">
+
+          {displayOtp && (
+            <div className="bg-yellow-200 text-black p-3 rounded flex justify-between items-center">
+              <span className="font-semibold">{displayOtp}</span>
+              <button onClick={handleCopyOtp}>
+                {copied ? <Check /> : <Copy />}
+              </button>
+            </div>
+          )}
+
+          {/* rest of your email / otp form stays SAME */}
+        
+            <form onSubmit={otpSent ? handleVerifyOTP : handleSendOTP}>
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder="Email"
+                className="w-full p-2 rounded text-black mb-3"
+                required
+                disabled={otpSent}
+              />
+
+              {otpSent && (
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={handleOtpChange}
+                  placeholder="OTP"
+                  className="w-full p-2 rounded text-black mb-3"
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#60a5fa] py-2 rounded font-semibold"
+              >
+                {loading ? "Please wait..." : otpSent ? "Verify OTP" : "Send OTP"}
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;

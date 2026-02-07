@@ -76,6 +76,9 @@ module.exports = {
   superadminLogin
 };
 
+
+
+
 // const Employee = require("../models/employeeSchema");
 // const Superadmin = require("../models/superadminModel");
 // const jwt = require("jsonwebtoken");

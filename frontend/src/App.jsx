@@ -45,6 +45,10 @@ import QuotationTable from "./components/Quotations/Quotationstable";
 import QuotationEdit from "./components/Quotations/QuotationsEdit";
 import SearchResults from "./components/SearchResults/SearchResults";
 import SearchLeads from "./components/SearchLeads/SearchLeads";
+import Requirements from "./components/Requirements/Requirements";
+import RequirementsForm from "./components/Requirements/RequirementsForm";
+import Preview from "./components/Requirements/Preview";
+import PreviewView from "./components/Requirements/PreviewView";
 
 const RouteTransition = ({ children }) => {
   return <>{children}</>;
@@ -154,6 +158,7 @@ const RoutesWithPreloader = ({ role }) => {
       '/expense-table',
       '/momdetails',
       '/quotation-table',
+      '/requirements-table',
     ];
 
     if (loadingRoutes.includes(location.pathname)) {
@@ -226,7 +231,8 @@ const RoutesWithPreloader = ({ role }) => {
     '/quotation-table',
     '/quotation-edit',
     '/search-leads',
-    '/search-results'
+    '/search-results',
+    '/requirements-table',
   ];
 
   const isValidPath = (path) => {
@@ -243,6 +249,12 @@ const RoutesWithPreloader = ({ role }) => {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
+
+        {/* ✅ PUBLIC STANDALONE PAGE */}
+        <Route path="/requirements-form" element={<RequirementsForm />} />
+        <Route path="/preview" element={<Preview />} />
+        <Route path="/preview/:id" element={<PreviewView />} />
+
         <Route
           path="/*"
           element={
@@ -319,6 +331,7 @@ const RoutesWithPreloader = ({ role }) => {
                     <Route path="/quotation-table" element={<QuotationTable />} />
                     <Route path="/quotation-edit/:id" element={<QuotationEdit />} />
                     <Route path="/search-results" element={<SearchResults />} />
+                    <Route path="/requirements-table" element={<Requirements />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                   </Routes>
                 </AdminLayout>

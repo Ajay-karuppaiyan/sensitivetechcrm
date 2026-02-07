@@ -86,6 +86,7 @@ const quotationRoutes = require("./routes/quotationRoute");
 const placesRoutes = require("./routes/placesRoutes");
 const placeDetailsRoute = require("./routes/placeDetailsRoute");
 const emailOTP = require("./routes/emailotpRoute");
+const previewRoutes = require("./routes/previewRoutes");
 
 // ✅ NEW GOOGLE AUTH ROUTE
 const googleAuthRoutes = require("./routes/googleAuthRoutes");
@@ -113,6 +114,7 @@ app.use("/mom", momRoutes);
 app.use("/quotation", quotationRoutes);
 app.use("/api", placesRoutes);
 app.use("/api/place-details", placeDetailsRoute);
+app.use("/api/preview", previewRoutes);
 
 // 🔐 AUTH ROUTES
 app.use("/auth", googleAuthRoutes);              // ✅ Google Login

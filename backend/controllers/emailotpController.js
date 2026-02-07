@@ -118,6 +118,10 @@ module.exports = {
   verifyOTP
 };
 
+
+
+
+
 // const employeeSchema = require("../models/employeeSchema");
 // const nodemailer = require("nodemailer");
 // const crypto = require("crypto");

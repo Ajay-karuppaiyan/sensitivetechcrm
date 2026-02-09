@@ -157,8 +157,32 @@ const getPreviewById = async (req, res) => {
   }
 };
 
+// ================= DELETE PREVIEW =================
+const deletePreview = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Preview.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: "Preview not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Preview deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete Preview Error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
 module.exports = {
   savePreview,
   getAllPreviews,
   getPreviewById,
+  deletePreview,
 };

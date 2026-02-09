@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { savePreview, getAllPreviews,getPreviewById, } = require("../controllers/previewController");
+const { savePreview, getAllPreviews,getPreviewById,deletePreview, } = require("../controllers/previewController");
 
-router.post("/", savePreview);   // Save preview data
-router.get("/", getAllPreviews); // Get all previews
+router.post("/", savePreview);
+router.get("/", getAllPreviews); 
 router.get("/:id", getPreviewById);
+router.delete("/:id", deletePreview);
 
 module.exports = router;

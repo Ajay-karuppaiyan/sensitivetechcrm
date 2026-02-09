@@ -114,10 +114,13 @@ const validateStep1 = () => {
   ];
 
   for (let key of requiredMainDropdowns) {
-    const selected = selections[key];
-    if (!selected || selected.length === 0) return false;
-    if (selected.includes("Others") && !selections[`${key}_other`]?.trim()) return false;
+  const selected = selections[key];
+  if (!selected) return false;
+
+  if (selected === "Others" && !selections[`${key}_other`]?.trim()) {
+    return false;
   }
+}
 
   // Website Designing fields
   const websiteDesigningFields = [
@@ -845,19 +848,11 @@ const SingleDropdown = ({
   setSelections,
   withOthers,
 }) => {
-  const [showOther, setShowOther] = useState(false);
-
   const handleChange = (option) => {
-    const prev = selections[title] || [];
-    const updated = prev.includes(option)
-      ? prev.filter((i) => i !== option)
-      : [...prev, option];
-
-    setSelections({ ...selections, [title]: updated });
-
-    if (option === "Others" && withOthers) {
-      setShowOther(!showOther);
-    }
+    setSelections({
+      ...selections,
+      [title]: option,
+    });
   };
 
   return (
@@ -872,16 +867,17 @@ const SingleDropdown = ({
               className="flex items-center gap-3 text-sm bg-slate-50 px-4 py-2 rounded-lg hover:bg-slate-100 cursor-pointer"
             >
               <input
-                type="checkbox"
-                className="accent-blue-600"
-                checked={selections[title]?.includes(o) || false}
+                type="radio"
+                name={title}
+                checked={selections[title] === o}
                 onChange={() => handleChange(o)}
+                className="accent-blue-600"
               />
               {o}
             </label>
           ))}
 
-          {withOthers && showOther && (
+          {withOthers && selections[title] === "Others" && (
             <input
               type="text"
               placeholder="Please specify..."
@@ -900,6 +896,7 @@ const SingleDropdown = ({
     </div>
   );
 };
+
 
 const Input = ({ label, type = "text", selections, setSelections }) => (
   <div>

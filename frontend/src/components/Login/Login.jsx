@@ -676,6 +676,12 @@
 
 
 
+
+
+
+
+// email and google login
+
 import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate, useLocation } from "react-router-dom";

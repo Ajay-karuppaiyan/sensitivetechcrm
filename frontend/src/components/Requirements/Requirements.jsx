@@ -52,6 +52,42 @@ const handlePreview = (row) => {
   navigate(`/preview/${row._id}`);
 };
 
+/* ---------------- DELETE HANDLER ---------------- */
+const handleDelete = async (row) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this requirement?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    // Delete from backend if it exists in DB
+    if (row._id && !row._id.startsWith("local-")) {
+      const res = await fetch(
+        `http://localhost:3000/api/preview/${row._id}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+    }
+
+    // Update UI immediately
+    setSubmissions((prev) =>
+      prev.filter((item) => item._id !== row._id)
+    );
+
+    // Remove from localStorage fallback
+    const existing = JSON.parse(localStorage.getItem("submissions") || "[]");
+    const updated = existing.filter((item) => item._id !== row._id);
+    localStorage.setItem("submissions", JSON.stringify(updated));
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Failed to delete requirement");
+  }
+};
+
 
   /* ---------------- HELPERS ---------------- */
   const renderDevRequirements = (requirements) => {
@@ -108,12 +144,21 @@ const handlePreview = (row) => {
       {
         Header: "Action",
         Cell: ({ row }) => (
-          <button
-            onClick={() => handlePreview(row.original)}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            View
-          </button>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => handlePreview(row.original)}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              View
+            </button>
+
+            <button
+              onClick={() => handleDelete(row.original)}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
         ),
       },
     ],
@@ -159,7 +204,7 @@ const handlePreview = (row) => {
         </div>
 
         <button
-          onClick={() => navigate("/requirements-form")}
+          onClick={() => window.open("/requirements-form", "_blank")}
           className="bg-blue-600 text-white px-5 py-2 rounded"
         >
           <FaPlus className="inline mr-2" />

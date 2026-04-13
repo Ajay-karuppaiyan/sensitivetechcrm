@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
-import Step5 from "./step5";
+import Step5 from "./Step5";
 import { useNavigate } from "react-router-dom";
 import Preview from "./Preview";
 

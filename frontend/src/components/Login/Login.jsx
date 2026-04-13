@@ -757,6 +757,8 @@ const LoginPage = () => {
     } catch (error) {
       if (error.response?.status === 404) {
         setError("Email not found. Please check your email address.");
+      } else if (error.response?.status === 403) {
+        setError(error.response.data.message || "Your account is inactive. Please contact admin.");
       } else {
         setError("Failed to send OTP. Please try again later.");
       }
@@ -779,8 +781,8 @@ const LoginPage = () => {
       if (response.status === 200) {
         const employeeData = response.data.employee || response.data.admin;
 
-        if (employeeData.status?.toLowerCase().trim() !== "active") {
-          setError("Your account is inactive. Contact admin.");
+        if (employeeData.status && employeeData.status.toLowerCase().trim() !== "active") {
+          setError("Your account is inactive. Please contact admin.");
           return;
         }
 
@@ -848,8 +850,8 @@ const LoginPage = () => {
 
       const employeeData = res.data.employee || res.data.admin;
 
-      if (employeeData.status?.toLowerCase().trim() !== "active") {
-        setError("Your account is inactive. Contact admin.");
+      if (employeeData.status && employeeData.status.toLowerCase().trim() !== "active") {
+        setError("Your account is inactive. Please contact admin.");
         return;
       }
 
@@ -867,8 +869,14 @@ const LoginPage = () => {
           ? "/dashboard"
           : "/attendance-form"
       );
-    } catch {
-      setError("Google Login Failed");
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError("Email not found. Please check your email address.");
+      } else if (err.response?.status === 403) {
+        setError(err.response.data.message || "Your account is inactive. Please contact admin.");
+      } else {
+        setError("Google Login Failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -898,6 +906,16 @@ return (
           className="h-24 md:h-28 lg:h-32 w-auto drop-shadow-xl"
         />
       </div>
+
+      {/* ERROR MESSAGE */}
+      {error && (
+        <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-2 p-4 bg-red-50/10 backdrop-blur-md border border-red-200/20 rounded-lg text-white">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* INITIAL */}
       {loginMethod === "initial" && (

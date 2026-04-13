@@ -20,11 +20,11 @@ const sendOTP = async (req, res) => {
 
     const empData = await Employee.findOne({ email });
     if (!empData) {
-      return res.status(404).json({ message: "Employee not found" });
+      return res.status(404).json({ message: "Email not found" });
     }
 
-    if (empData.status.toLowerCase() !== "active") {
-      return res.status(403).json({ message: "Account inactive" });
+    if (empData.status && empData.status.toLowerCase() !== "active") {
+      return res.status(403).json({ message: "Your account is inactive. Please contact admin." });
     }
 
     const otp = generateOTP();
@@ -76,7 +76,11 @@ const verifyOTP = async (req, res) => {
 
     const empData = await Employee.findOne({ email });
     if (!empData) {
-      return res.status(404).json({ message: "Employee not found" });
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    if (empData.status && empData.status.toLowerCase() !== "active") {
+      return res.status(403).json({ message: "Your account is inactive. Please contact admin." });
     }
 
     otpStore.delete(email);

@@ -16,7 +16,7 @@ const Requirements = () => {
     const fetchSubmissions = async () => {
       try {
         // Fetch from backend API first
-        const res = await fetch("http://localhost:3000/api/preview");
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/preview`);
         if (res.ok) {
           const data = await res.json();
           setSubmissions(data);
@@ -64,7 +64,7 @@ const handleDelete = async (row) => {
     // Delete from backend if it exists in DB
     if (row._id && !row._id.startsWith("local-")) {
       const res = await fetch(
-        `http://localhost:3000/api/preview/${row._id}`,
+        `${import.meta.env.VITE_BASE_URL}/api/preview/${row._id}`,
         { method: "DELETE" }
       );
 

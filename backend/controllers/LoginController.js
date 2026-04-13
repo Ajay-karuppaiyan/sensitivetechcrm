@@ -14,11 +14,11 @@ const login = async (req, res) => {
 
     // ❌ Employee not found
     if (!employee) {
-      return res.status(404).json({ error: "Employee not found" });
+      return res.status(404).json({ error: "Email not found" });
     }
 
-    // 🔴 BLOCK INACTIVE EMPLOYEE (THIS WAS MISSING)
-    if (employee.status === "Inactive") {
+    // 🔴 BLOCK INACTIVE EMPLOYEE
+    if (employee.status && employee.status.toLowerCase() !== "active") {
       return res.status(403).json({
         error: "Your account is inactive. Please contact admin."
       });

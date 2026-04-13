@@ -26,13 +26,13 @@ const googleLogin = async (req, res) => {
 
     if (!empData) {
       return res.status(404).json({
-        message: "Employee not registered",
+        message: "Email not found",
       });
     }
 
-    if (empData.status.trim().toLowerCase() !== "active") {
+    if (empData.status && empData.status.trim().toLowerCase() !== "active") {
       return res.status(403).json({
-        message: "Your account is inactive. Contact admin.",
+        message: "Your account is inactive. Please contact admin.",
       });
     }
 
